@@ -1,11 +1,13 @@
 import os 
 
 import h5py as h5
+from imutils import paths
 
 from keras.preprocessing.image import load_img, img_to_array
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
+from sklearn.utils import shuffle
 
 
 class FileAlreadyOpenError(RuntimeError):
@@ -64,34 +66,24 @@ class HDF5ImageWriter(object):
         
 directory = os.path.join('datasets/hotdogs/seefood/train')
 
-classes = []
+X_paths = shuffle(list(paths.list_images(directory)))
 
-for subdir in sorted(os.listdir(directory)):
-    if os.path.isdir(os.path.join(directory, subdir)):
-        classes.append(subdir)
-        
-X_paths = []
-y_paths = []
-        
-for class_ in classes:
-    for path in os.listdir(os.path.join(directory, class_)):
-        X_paths.append(os.path.join(directory, class_, path))
-        y_paths.append(class_)
+classes = [path.split(os.path.sep)[-2].split('.')[0] for path in X_paths]
 
 enc = LabelEncoder()
-y = enc.fit_transform(y_paths)
+y = enc.fit_transform(classes)
         
-X_train, X_test, y_train, y_test = train_test_split(
-    X_paths, y, test_size=0.2, random_state=42
-)
+#X_train, X_test, y_train, y_test = train_test_split(
+#    X_paths, y, test_size=0.2, random_state=42
+#)
 
 h5_writer = HDF5ImageWriter(
-    src="test.h5", dims=(len(X_test), 224, 224, 3)
+    src="train_v3.h5", dims=(len(X_paths), 224, 224, 3)
 )
 
 with h5_writer as writer:
-    for path, label in zip(X_test, y_test):
+    for path, label in zip(X_paths, y):
         raw_image = load_img(path, target_size=(224, 224))
         image = img_to_array(raw_image)
         writer.add([image], [label])
-        print('Added', path)
+        print('Added', path, label)
