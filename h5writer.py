@@ -47,6 +47,13 @@ class HDF5ImageWriter(object):
 
         if len(self.buffer["tmp_images"]) >= self.buffer_size:
             self.__flush()
+            
+    def add_classes(self, classes):
+        datatype = h5.string_dtype(encoding="utf-8")
+        classes_set = self.db.create_dataset("classes", (len(classes),), dtype=datatype)
+        classes_set[:] = classes
+        
+        print('[Classes] Added', (len(classes)))
 
     def __flush(self):
         index = self._index + len(self.buffer["tmp_images"])
@@ -72,13 +79,14 @@ classes = [path.split(os.path.sep)[-2].split('.')[0] for path in X_paths]
 
 enc = LabelEncoder()
 y = enc.fit_transform(classes)
+
         
 #X_train, X_test, y_train, y_test = train_test_split(
 #    X_paths, y, test_size=0.2, random_state=42
 #)
 
 h5_writer = HDF5ImageWriter(
-    src="train_v3.h5", dims=(len(X_paths), 224, 224, 3)
+    src="train.h5", dims=(len(X_paths), 224, 224, 3)
 )
 
 with h5_writer as writer:
@@ -87,3 +95,4 @@ with h5_writer as writer:
         image = img_to_array(raw_image)
         writer.add([image], [label])
         print('Added', path, label)
+    writer.add_classes(enc.classes_)

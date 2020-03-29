@@ -48,6 +48,13 @@ class HDF5ImageWriter(object):
 
         if len(self.buffer["tmp_images"]) >= self.buffer_size:
             self.__flush()
+            
+    def add_classes(self, classes):
+        datatype = h5.string_dtype(encoding="utf-8")
+        classes_set = self.db.create_dataset("classes", (len(classes),), dtype=datatype)
+        classes_set[:] = classes
+        
+        print('[Classes] Added', (len(classes)))
 
     def __flush(self):
         index = self._index + len(self.buffer["tmp_images"])
@@ -69,7 +76,8 @@ model = resnet50.ResNet50(weights='imagenet', include_top=False)
 batch_size = 32
 
 gen = HDF5ImageGenerator(
-    src= 'test_v3.h5',
+    src= 'train.h5',
+    classes_key='classes',
     num_classes=2,
     labels_encoding=False,
     scaler=False,
@@ -77,7 +85,7 @@ gen = HDF5ImageGenerator(
 )
 
 h5_writer = HDF5ImageWriter(
-    src="features_test.h5",
+    src="features_train.h5",
     dims=(gen.num_items, 2048 * 7 * 7),
     buffer_size=batch_size
 )
@@ -89,3 +97,4 @@ with h5_writer as writer:
         features = features.reshape((features.shape[0], 2048 * 7 * 7))
         
         writer.add(features, batch_y)
+    writer.add_classes(gen.classes)
