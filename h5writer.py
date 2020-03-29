@@ -71,7 +71,7 @@ class HDF5ImageWriter(object):
         
 
         
-directory = os.path.join('datasets/hotdogs/seefood/train')
+directory = os.path.join('datasets/birds/consolidated')
 
 X_paths = shuffle(list(paths.list_images(directory)))
 
@@ -81,16 +81,16 @@ enc = LabelEncoder()
 y = enc.fit_transform(classes)
 
         
-#X_train, X_test, y_train, y_test = train_test_split(
-#    X_paths, y, test_size=0.2, random_state=42
-#)
+X_train, X_test, y_train, y_test = train_test_split(
+    X_paths, y, test_size=0.2, random_state=42
+)
 
 h5_writer = HDF5ImageWriter(
-    src="train.h5", dims=(len(X_paths), 224, 224, 3)
+    src="datasets/birds/test.h5", dims=(len(X_test), 224, 224, 3)
 )
 
 with h5_writer as writer:
-    for path, label in zip(X_paths, y):
+    for path, label in zip(X_test, y_test):
         raw_image = load_img(path, target_size=(224, 224))
         image = img_to_array(raw_image)
         writer.add([image], [label])
