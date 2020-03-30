@@ -3,7 +3,7 @@ import os
 import h5py as h5
 import numpy as np
 
-from keras.applications import inception_v3, resnet50, imagenet_utils
+from keras.applications import inception_v3, resnet50, xception, imagenet_utils
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
@@ -71,33 +71,34 @@ class HDF5ImageWriter(object):
         self.db.close()
 
 
-model = resnet50.ResNet50(
+model = xception.Xception(
     weights='imagenet',
     include_top=False,
     input_shape=(299, 299, 3),
 )
+
 #model = inception_v3.InceptionV3(weights='imagenet', include_top=False)
 
 batch_size = 32
 
 gen = HDF5ImageGenerator(
-    src= 'train.h5',
+    src= 'datasets/dogs/train.h5',
     classes_key='classes',
     num_classes=2,
     labels_encoding=False,
     scaler=False,
-    batch_size=batch_size
+    batch_size=batch_size,
 )
 
 h5_writer = HDF5ImageWriter(
-    src="features_train.h5",
+    src="datasets/dogs/features_train.h5",
     dims=(gen.num_items, 2048 * 10 * 10),
-    buffer_size=batch_size
+    buffer_size=batch_size,
 )
 
 with h5_writer as writer:
     for batch_X, batch_y in gen:
-        batch_X = resnet50.preprocess_input(batch_X)
+        batch_X = xception.preprocess_input(batch_X)
         features = model.predict(batch_X, batch_size=batch_size)
         features = features.reshape((features.shape[0], 2048 * 10 * 10))
         

@@ -71,7 +71,7 @@ class HDF5ImageWriter(object):
         
 
         
-directory = os.path.join('datasets/hotdogs/seefood/test')
+directory = os.path.join('datasets/hotdogs/train')
 
 X_paths = shuffle(list(paths.list_images(directory)))
 
@@ -86,7 +86,7 @@ y = enc.fit_transform(classes)
 #)
 
 h5_writer = HDF5ImageWriter(
-    src="test.h5", dims=(len(X_paths), 299, 299, 3)
+    src="train.h5", dims=(len(X_paths), 299, 299, 3)
 )
 
 with h5_writer as writer:
